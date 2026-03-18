@@ -1,0 +1,50 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ emp_id: string }> }
+) {
+  try {
+    const { emp_id } = await params;
+
+    const employee = await prisma.employees.findUnique({
+      where: { emp_id },
+    });
+
+    if (!employee) {
+      return NextResponse.json({ error: "ไม่พบข้อมูลพนักงาน" }, { status: 404 });
+    }
+
+    if (!employee.start_date) {
+      return NextResponse.json({ error: "ไม่พบข้อมูลวันที่เริ่มงาน" }, { status: 400 });
+    }
+
+    const startDate = new Date(employee.start_date);
+    const today = new Date();
+    
+    // Calculate difference in days
+    // Use getTime() and divide by milliseconds in a day
+    const diffTime = today.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 89) {
+      return NextResponse.json({ 
+        error: "คุณสมบัติในการสมัครยังไม่เพียงพอ (อายุงานยังไม่ถึง 90 วัน)",
+        isEligible: false
+      }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      emp_id: employee.emp_id,
+      title: employee.title,
+      name: employee.name,
+      surname: employee.surname,
+      site: employee.site,
+      isEligible: true
+    });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

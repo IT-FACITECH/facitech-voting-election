@@ -10,23 +10,39 @@ export async function POST(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { firstName, lastName, employeeId } = await req.json();
+  const { employeeId } = await req.json();
 
-  if (!firstName || !lastName || !employeeId) {
-    return new NextResponse("Missing fields", { status: 400 });
+  if (!employeeId) {
+    return new NextResponse("Missing employee ID", { status: 400 });
   }
 
   try {
+    // 1. Check if employee exists in the employees table
+    const employee = await prisma.employees.findUnique({
+      where: { emp_id: employeeId },
+    });
+
+    if (!employee) {
+      return new NextResponse("ไม่พบรหัสพนักงานในระบบ กรุณาตรวจสอบอีกครั้ง", { status: 404 });
+    }
+
+    // 2. Combine title, name, and surname (if available)
+    const fullName = [employee.title, employee.name, employee.surname]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    // 3. Update or create the user profile
     const updatedUser = await prisma.users.upsert({
       where: { id: userId },
       update: {
-        name: `${firstName} ${lastName}`,
+        name: fullName,
         employee_id: employeeId,
         email: user.emailAddresses[0]?.emailAddress,
       },
       create: {
         id: userId,
-        name: `${firstName} ${lastName}`,
+        name: fullName,
         employee_id: employeeId,
         email: user.emailAddresses[0]?.emailAddress,
         line_user_id: user.externalAccounts.find(acc => acc.provider === "oauth_line")?.externalId,

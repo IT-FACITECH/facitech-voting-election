@@ -1,14 +1,5 @@
-import { SignUp } from "@clerk/nextjs";
+import SignUpView from "@/components/SignUpView";
 
 export default function Page() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-      <SignUp appearance={{
-        elements: {
-          formButtonPrimary: 'bg-black dark:bg-white text-white dark:text-black hover:opacity-90',
-          footerActionLink: 'text-black dark:text-white hover:underline'
-        }
-      }} />
-    </div>
-  );
+  return <SignUpView />;
 }
