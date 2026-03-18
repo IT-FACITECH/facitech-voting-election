@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model candidates {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  election_id String?    @db.Uuid
+  number      Int
+  name        String
+  bio         String?
+  image_url   String?
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  site        String?
+  elections   elections? @relation(fields: [election_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  votes       votes[]
+}
+
+model elections {
+  id          String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title       String
+  description String?
+  start_date  DateTime     @db.Timestamptz(6)
+  end_date    DateTime     @db.Timestamptz(6)
+  is_active   Boolean?     @default(true)
+  created_at  DateTime?    @default(now()) @db.Timestamptz(6)
+  candidates  candidates[]
+  votes       votes[]
+}
+
+model users {
+  id           String    @id
+  name         String?
+  email        String?
+  employee_id  String?
+  line_user_id String?
+  created_at   DateTime? @default(now()) @db.Timestamptz(6)
+  votes        votes[]
+}
+
+model votes {
+  id           String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  election_id  String?     @db.Uuid
+  candidate_id String?     @db.Uuid
+  voter_id     String?
+  created_at   DateTime?   @default(now()) @db.Timestamptz(6)
+  first_name   String?
+  last_name    String?
+  employee_id  String?
+  candidates   candidates? @relation(fields: [candidate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  elections    elections?  @relation(fields: [election_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users?      @relation(fields: [voter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([election_id, voter_id, candidate_id], map: "unique_vote_per_user_per_candidate")
+}
