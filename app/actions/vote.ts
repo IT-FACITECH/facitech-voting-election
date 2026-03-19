@@ -54,8 +54,8 @@ export async function castVote(formData: {
   }
 
   // Check if all selected candidate IDs belong to this election
-  const electionCandidateIds = election.candidates.map(c => c.id);
-  const allBelong = uniqueCandidateIds.every(id => electionCandidateIds.includes(id));
+  const electionCandidateIds = election.candidates.map((c: { id: string }) => c.id);
+  const allBelong = uniqueCandidateIds.every((id: string) => electionCandidateIds.includes(id));
   if (!allBelong) {
     throw new Error("ผู้สมัครบางท่านไม่ได้อยู่ในรายการของการเลือกตั้งนี้");
   }
