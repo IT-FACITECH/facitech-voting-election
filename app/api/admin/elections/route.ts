@@ -14,7 +14,7 @@ export async function GET() {
     });
 
     const electionsWithVoters = await Promise.all(
-      elections.map(async (e) => {
+      elections.map(async (e: { id: string; _count?: any }) => {
         const uniqueVoters = await prisma.votes.findMany({
           where: { election_id: e.id },
           distinct: ["voter_id"],
