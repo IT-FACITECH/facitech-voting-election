@@ -32,7 +32,7 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json(registrations.map(r => r.election_id));
+    return NextResponse.json(registrations.map((r: { election_id: string | null }) => r.election_id));
   } catch (error) {
     console.error("Failed to fetch registrations", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

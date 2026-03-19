@@ -81,7 +81,7 @@ export async function castVote(formData: {
     // 3. Record all 5 votes in a transaction
     await prisma.$transaction([
       // Create a vote record for each candidate
-      ...candidateIds.map((candidateId) => 
+      ...candidateIds.map((candidateId: string) => 
         prisma.votes.create({
           data: {
             election_id: electionId,
