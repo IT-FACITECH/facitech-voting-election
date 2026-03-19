@@ -48,8 +48,9 @@ export default function VotingContent({ userId }: { userId: string }) {
         } else {
           setElection(data.election);
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดึงข้อมูล";
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -88,7 +89,7 @@ export default function VotingContent({ userId }: { userId: string }) {
   if (election.candidates.length === 0) {
     return (
       <div className="bg-white/10 backdrop-blur-xl p-10 rounded-[2.5rem] text-center border border-white/20">
-         <p className="text-white text-xl">ยังไม่มีผู้สมัครในการเลือกตั้ง "{election.title}"</p>
+         <p className="text-white text-xl">ยังไม่มีผู้สมัครในการเลือกตั้ง {election.title}</p>
       </div>
     );
   }

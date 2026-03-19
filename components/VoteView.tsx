@@ -6,6 +6,8 @@ interface VoteViewProps {
   user: {
     firstName?: string | null;
     username?: string | null;
+    name?: string | null;
+    surname?: string | null;
     imageUrl: string;
   };
   userId: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -13,6 +14,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { ElectionSelectDialog } from "./ElectionSelectDialog";
 
 interface ElectionSummary {
   id: string;
@@ -33,6 +35,7 @@ interface MenuViewProps {
 
 export default function MenuView({ canManage, electionStatus }: MenuViewProps) {
   const router = useRouter();
+  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
 
   const handleVoteClick = async () => {
     const votes = electionStatus.availableVotes;
@@ -56,34 +59,12 @@ export default function MenuView({ canManage, electionStatus }: MenuViewProps) {
     }
 
     // Multiple elections available
-    const { value: electionId } = await Swal.fire({
-      title: "เลือกรายการการเลือกตั้ง",
-      text: "กรุณาเลือกรายการที่คุณต้องการลงคะแนน",
-      icon: "question",
-      input: "select",
-      inputOptions: Object.fromEntries(
-        votes.map(v => [v.id, `${v.title} (${v.candidateCount} ผู้สมัคร)`])
-      ),
-      inputPlaceholder: "--- เลือกการเลือกตั้ง ---",
-      showCancelButton: true,
-      confirmButtonText: "ตกลง",
-      cancelButtonText: "ยกเลิก",
-      background: "rgba(24, 24, 27, 0.95)",
-      color: "#fff",
-      confirmButtonColor: "#6366f1",
-      inputValidator: (value) => {
-        if (!value) return "กรุณาเลือกรายการก่อนดำเนินการต่อ";
-        const selected = votes.find(v => v.id === value);
-        if (selected && selected.candidateCount < 5) {
-          return `การเลือกตั้ง "${selected.title}" มีจำนวนผู้สมัครไม่ครบ 5 ท่าน`;
-        }
-        return null;
-      }
-    });
+    setIsSelectModalOpen(true);
+  };
 
-    if (electionId) {
-      router.push(`/vote?id=${electionId}`);
-    }
+  const handleElectionSelect = (electionId: string) => {
+    setIsSelectModalOpen(false);
+    router.push(`/vote?id=${electionId}`);
   };
 
   const getVoteMessage = () => {
@@ -160,16 +141,20 @@ export default function MenuView({ canManage, electionStatus }: MenuViewProps) {
                   )}
                 </div>
 
+                {isVoteButton && electionStatus.availableVotes.length > 1 && !item.isDisabled && (
+                  <div className="absolute top-8 right-8 z-10">
+                    <div className="bg-indigo-600 text-white px-3 py-2 rounded-2xl shadow-xl shadow-indigo-500/40 animate-pulse flex flex-col items-center border border-white/20 backdrop-blur-md">
+                      <span className="text-xl font-black leading-none">{electionStatus.availableVotes.length}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tighter mt-1 opacity-80">รายการ</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex-grow space-y-3">
                   <div className="flex items-center gap-3">
                     <h3 className={`text-2xl font-black ${item.isDisabled ? 'text-white/40' : 'text-white'} tracking-tight group-hover:text-indigo-300 transition-colors`}>
                       {item.title}
                     </h3>
-                    {isVoteButton && electionStatus.availableVotes.length > 1 && !item.isDisabled && (
-                      <span className="bg-indigo-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md animate-pulse">
-                        {electionStatus.availableVotes.length} รายการ
-                      </span>
-                    )}
                   </div>
                   <p className={`${item.isDisabled ? 'text-white/20' : 'text-white/60'} leading-relaxed font-medium`}>
                     {item.description}
@@ -238,6 +223,13 @@ export default function MenuView({ canManage, electionStatus }: MenuViewProps) {
           </p>
         </div>
       </div>
+
+      <ElectionSelectDialog 
+        isOpen={isSelectModalOpen}
+        onClose={() => setIsSelectModalOpen(false)}
+        votes={electionStatus.availableVotes}
+        onConfirm={handleElectionSelect}
+      />
     </div>
   );
 }

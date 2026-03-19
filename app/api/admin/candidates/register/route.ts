@@ -27,6 +27,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "ไม่พบข้อมูลพนักงาน" }, { status: 404 });
     }
 
+    // 1.1 Check if already registered for this election
+    const existingCandidate = await prisma.candidates.findFirst({
+      where: {
+        election_id,
+        create_by: emp_id,
+      },
+    });
+
+    if (existingCandidate) {
+      return NextResponse.json({ error: "พนักงานท่านนี้ได้ลงทะเบียนเป็นผู้สมัครในการเลือกตั้งนี้แล้ว" }, { status: 400 });
+    }
+
     // 2. Process Image from Clerk to Supabase
     let imageUrl = user.imageUrl;
     
@@ -43,7 +55,7 @@ export async function POST(req: Request) {
       const filePath = `candidates/${fileName}`;
 
       // Upload to Supabase
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('photo')
         .upload(filePath, buffer, {
           contentType: blob.type,

@@ -56,6 +56,8 @@ export default async function MenuPage() {
   const sanitizedUser = {
     firstName: user.firstName,
     username: user.username,
+    name: employee?.name,
+    surname: employee?.surname,
     imageUrl: user.imageUrl,
   };
 

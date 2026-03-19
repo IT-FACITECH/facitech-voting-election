@@ -9,6 +9,8 @@ interface HeaderProps {
   user: {
     firstName?: string | null;
     username?: string | null;
+    name?: string | null;
+    surname?: string | null;
     imageUrl: string;
   };
 }
@@ -35,7 +37,7 @@ export default function Header({ user }: HeaderProps) {
           </h1>
           <p className="text-white/40 font-bold text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            ยินดีต้อนรับ, {user.firstName || user.username || 'Voter'}
+            ยินดีต้อนรับ, {user.name && user.surname ? `${user.name} ${user.surname}` : user.firstName || user.username || 'Voter'}
           </p>
         </div>
       </div>

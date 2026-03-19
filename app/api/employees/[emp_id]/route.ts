@@ -7,6 +7,8 @@ export async function GET(
 ) {
   try {
     const { emp_id } = await params;
+    const { searchParams } = new URL(request.url);
+    const electionId = searchParams.get("election_id");
 
     const employee = await prisma.employees.findUnique({
       where: { emp_id },
@@ -14,6 +16,23 @@ export async function GET(
 
     if (!employee) {
       return NextResponse.json({ error: "ไม่พบข้อมูลพนักงาน" }, { status: 404 });
+    }
+
+    // 1. Check if already registered for this election (if electionId provided)
+    if (electionId) {
+      const existingCandidate = await prisma.candidates.findFirst({
+        where: {
+          election_id: electionId,
+          create_by: emp_id,
+        },
+      });
+
+      if (existingCandidate) {
+        return NextResponse.json({ 
+          error: "พนักงานท่านนี้ได้ลงทะเบียนเป็นผู้สมัครในการเลือกตั้งนี้แล้ว",
+          isEligible: false 
+        }, { status: 403 });
+      }
     }
 
     if (!employee.start_date) {

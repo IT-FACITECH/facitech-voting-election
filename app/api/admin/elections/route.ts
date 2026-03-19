@@ -8,12 +8,31 @@ export async function GET() {
       orderBy: { created_at: "desc" },
       include: {
         _count: {
-          select: { candidates: true, votes: true }
+          select: { candidates: true }
         }
       }
     });
-    return NextResponse.json(elections);
-  } catch (error) {
+
+    const electionsWithVoters = await Promise.all(
+      elections.map(async (e) => {
+        const uniqueVoters = await prisma.votes.findMany({
+          where: { election_id: e.id },
+          distinct: ["voter_id"],
+          select: { voter_id: true }
+        });
+        const voterCount = uniqueVoters.length;
+        return {
+          ...e,
+          _count: {
+            ...e._count,
+            votes: voterCount // Replacing 'votes' with 'voterCount' to avoid frontend interface changes
+          }
+        };
+      })
+    );
+    return NextResponse.json(electionsWithVoters);
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Failed to fetch elections" }, { status: 500 });
   }
 }
@@ -30,17 +49,17 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
-        reg_start_date: new Date(reg_start_date),
-        reg_end_date: new Date(reg_end_date),
-        start_date: new Date(start_date),
-        end_date: new Date(end_date),
+        reg_start_date: new Date(reg_start_date + "+07:00"),
+        reg_end_date: new Date(reg_end_date + "+07:00"),
+        start_date: new Date(start_date + "+07:00"),
+        end_date: new Date(end_date + "+07:00"),
         is_active: true,
       },
     });
 
     return NextResponse.json(election);
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Failed to create election" }, { status: 500 });
   }
 }
@@ -64,16 +83,17 @@ export async function PUT(req: Request) {
       data: {
         title,
         description,
-        reg_start_date: new Date(reg_start_date),
-        reg_end_date: new Date(reg_end_date),
-        start_date: new Date(start_date),
-        end_date: new Date(end_date),
+        reg_start_date: new Date(reg_start_date + "+07:00"),
+        reg_end_date: new Date(reg_end_date + "+07:00"),
+        start_date: new Date(start_date + "+07:00"),
+        end_date: new Date(end_date + "+07:00"),
         is_active,
       },
     });
 
     return NextResponse.json(election);
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Failed to update election" }, { status: 500 });
   }
 }

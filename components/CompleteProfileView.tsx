@@ -4,6 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Swal from "sweetalert2";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Info, UserCheck, ArrowRight } from "lucide-react";
 
 export default function CompleteProfileView() {
   const { user, isLoaded } = useUser();
@@ -86,60 +91,67 @@ export default function CompleteProfileView() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-lg space-y-10 bg-white/10 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] shadow-2xl border border-white/20 overflow-hidden relative">
-        {/* Background Glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-[80px]" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-[80px]" />
+      <Card className="w-full max-w-lg border-white/10 bg-zinc-950/50 backdrop-blur-2xl shadow-2xl rounded-[3rem] overflow-hidden relative">
+        {/* Decorative elements */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px]" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px]" />
 
-        <div className="text-center relative z-10">
-          <h2 className="text-4xl font-black text-white tracking-tight uppercase mb-4">
-            ยืนยันตัวตนพนักงาน
-          </h2>
-          <div className="h-1.5 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full mb-6" />
-          <p className="text-lg text-white/70 font-medium leading-relaxed">
-            กรุณาระบุรหัสพนักงานของคุณ<br/>เพื่อตรวจสอบและดึงข้อมูลจากระบบ
-          </p>
-        </div>
-
-        <form className="space-y-10 relative z-10" onSubmit={handleSubmit}>
-
-          <div className="space-y-3">
-            <label htmlFor="employeeId" className="block text-xs font-black uppercase tracking-[0.2em] text-indigo-300 ml-2">
-              รหัสพนักงาน (Employee ID - 6 หลัก)
-            </label>
-            <input
-              id="employeeId"
-              type="text"
-              maxLength={6}
-              required
-              className="w-full px-6 py-5 rounded-[1.5rem] border-2 border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all hover:border-white/20 text-center text-3xl font-black tracking-[0.5em]"
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="000000"
-            />
+        <CardHeader className="text-center pt-12 pb-8 relative z-10 space-y-4">
+          <div className="mx-auto w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center">
+            <UserCheck className="w-8 h-8" />
           </div>
+          <CardTitle className="text-4xl font-black text-white tracking-tight uppercase">
+            ยืนยันตัวตนพนักงาน
+          </CardTitle>
+          <CardDescription className="text-lg text-white/50 font-medium max-w-xs mx-auto">
+            ระบุรหัสพนักงานของคุณเพื่อตรวจสอบและดึงข้อมูลจากระบบ
+          </CardDescription>
+        </CardHeader>
 
-          <div className="pt-4">
-            <button
+        <CardContent className="relative z-10 px-8 md:px-12 pb-12">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <Label className="block text-xs font-black uppercase tracking-[0.2em] text-indigo-200 text-center">
+                รหัสพนักงาน (Employee ID - 6 หลัก)
+              </Label>
+              <Input
+                type="text"
+                maxLength={6}
+                required
+                className="h-20 rounded-[1.5rem] border-white/10 bg-white/5 text-white placeholder:text-white/10 focus-visible:ring-indigo-400 text-center text-4xl font-black tracking-[0.5em]"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+              />
+            </div>
+
+            <Button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full overflow-hidden py-6 px-10 rounded-[2.5rem] bg-gradient-to-r from-indigo-500 via-indigo-600 to-[#4B39EF] text-white font-black text-2xl shadow-[0_20px_80px_rgba(75,57,239,0.4)] hover:shadow-[0_25px_100px_rgba(75,57,239,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:grayscale disabled:pointer-events-none"
+              className="w-full h-18 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl shadow-2xl transition-all active:scale-95 disabled:opacity-50"
             >
-              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10 flex items-center justify-center gap-4">
-                {isLoading ? (
-                  <>
-                    <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>กำลังบันทึกข้อมูล...</span>
-                  </>
-                ) : (
-                  <span className="uppercase tracking-tight">ยืนยันและไปที่หน้าลงคะแนน</span>
-                )}
-              </div>
-            </button>
+              {isLoading ? (
+                <>
+                  <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin mr-3" />
+                  <span>กำลังบันทึกข้อมูล...</span>
+                </>
+              ) : (
+                <>
+                  <span className="uppercase tracking-tight">ยืนยันและไปต่อ</span>
+                  <ArrowRight className="w-6 h-6 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="bg-white/5 border-t border-white/5 p-6 justify-center">
+          <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">
+            <Info className="w-4 h-4" />
+            ตรวจสอบตัวตนของคุณเพื่อใช้สิทธิ์เลือกตั้ง
           </div>
-        </form>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
