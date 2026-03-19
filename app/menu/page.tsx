@@ -62,19 +62,19 @@ export default async function MenuPage() {
   };
 
   // Check registration status (any active registration?)
-  const regElection = activeElections.find(e => 
+  const regElection = activeElections.find((e: any) => 
     e.reg_start_date && e.reg_end_date &&
     now >= new Date(e.reg_start_date) && now <= new Date(e.reg_end_date)
   );
 
   // List of elections open for voting
-  const votingOpenElections = activeElections.filter(e => 
+  const votingOpenElections = activeElections.filter((e: any) => 
     now >= new Date(e.start_date) && 
     now <= new Date(e.end_date)
   );
 
   // Elections user HAS NOT voted for yet
-  const availableVoteElections = votingOpenElections.filter(e => e.votes.length === 0);
+  const availableVoteElections = votingOpenElections.filter((e: any) => e.votes.length === 0);
 
   // Is there at least one election open right now?
   const isAnyVotePeriodOpen = votingOpenElections.length > 0;
@@ -86,8 +86,8 @@ export default async function MenuPage() {
     isRegOpen: !!regElection,
     isVoteOpen: isAnyVotePeriodOpen && !isAllVoted,
     isAllVoted: isAllVoted,
-    candidateCount: availableVoteElections.length > 0 ? Math.max(...availableVoteElections.map(e => e._count.candidates)) : 0,
-    availableVotes: availableVoteElections.map(e => ({
+    candidateCount: availableVoteElections.length > 0 ? Math.max(...availableVoteElections.map((e: any) => e._count.candidates)) : 0,
+    availableVotes: availableVoteElections.map((e: any) => ({
       id: e.id,
       title: e.title,
       candidateCount: e._count.candidates

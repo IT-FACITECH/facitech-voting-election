@@ -126,7 +126,7 @@ export default function MenuView({ canManage, electionStatus }: MenuViewProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {menuItems.filter(item => item.show).map((item, index) => {
+          {menuItems.filter((item: any) => item.show).map((item, index) => {
             const isVoteButton = item.title === "เข้าสู่ระบบโหวตคะแนน";
             
             const CardContent = (

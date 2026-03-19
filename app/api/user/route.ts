@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         name: fullName,
         employee_id: employeeId,
         email: user.emailAddresses[0]?.emailAddress,
-        line_user_id: user.externalAccounts.find(acc => acc.provider === "oauth_line")?.externalId,
+        line_user_id: user.externalAccounts.find((acc: any) => acc.provider === "oauth_line")?.externalId,
       },
     });
 
