@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
@@ -17,6 +17,9 @@ export async function POST(req: Request) {
     if (!emp_id || !election_id) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    // Initialize supabase client
+    const supabase = getSupabase();
 
     // 1. Fetch Employee Data to verify
     const employee = await prisma.employees.findUnique({
