@@ -193,7 +193,7 @@ export default function CandidateRegistrationView({ initialEmployee, userImageUr
                             ) : (
                               <>
                                 <UserPlus className="w-4 h-4 mr-2" />
-                                สมัครการชุดนี้
+                                ลงสมัครการเลือกตั้ง
                               </>
                             )}
                           </Button>
