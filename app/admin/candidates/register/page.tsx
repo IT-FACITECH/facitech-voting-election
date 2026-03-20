@@ -37,6 +37,46 @@ export default async function RegisterCandidatePage() {
     site: employee.site,
   } : null;
 
+  // 1. ดึงการเลือกตั้งที่ Active และอยู่ในช่วงเวลาสมัคร
+  const now = new Date();
+  const elections = await prisma.elections.findMany({
+    where: {
+      is_active: true,
+      reg_start_date: { lte: now },
+      reg_end_date: { gte: now },
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
+
+  // 2. ดึง ID ของการเลือกตั้งที่พนักงานคนนี้ลงสมัครไปแล้ว
+  let registeredElectionIds: string[] = [];
+  if (employee) {
+    const candidateRegs = await prisma.candidates.findMany({
+      where: {
+        site: employee.site,
+        name: `${employee.name} ${employee.surname}`,
+      },
+      select: {
+        election_id: true,
+      },
+    });
+    registeredElectionIds = candidateRegs
+      .map((reg) => reg.election_id)
+      .filter((id): id is string => id !== null);
+  }
+
+  // แปลง Date เป็น String สำหรับ Client Component
+  const serializedElections = elections.map(e => ({
+    ...e,
+    reg_start_date: e.reg_start_date?.toISOString(),
+    reg_end_date: e.reg_end_date?.toISOString(),
+    start_date: e.start_date.toISOString(),
+    end_date: e.end_date.toISOString(),
+    created_at: e.created_at?.toISOString(),
+  }));
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       {/* Background Decorations */}
@@ -49,6 +89,8 @@ export default async function RegisterCandidatePage() {
           <CandidateRegistrationView 
             initialEmployee={initialEmployee} 
             userImageUrl={sanitizedUser.imageUrl}
+            initialElections={serializedElections as any}
+            initialRegisteredIds={registeredElectionIds}
           />
         </div>
       </div>

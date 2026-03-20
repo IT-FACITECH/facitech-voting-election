@@ -31,16 +31,23 @@ interface Election {
 interface CandidateRegistrationViewProps {
   initialEmployee?: Employee | null;
   userImageUrl?: string | null;
+  initialElections?: Election[];
+  initialRegisteredIds?: string[];
 }
 
-export default function CandidateRegistrationView({ initialEmployee, userImageUrl }: CandidateRegistrationViewProps) {
+export default function CandidateRegistrationView({ 
+  initialEmployee, 
+  userImageUrl,
+  initialElections = [],
+  initialRegisteredIds = []
+}: CandidateRegistrationViewProps) {
   const [employee] = useState<Employee | null>(initialEmployee || null);
-  const [elections, setElections] = useState<Election[]>([]);
+  const [elections, setElections] = useState<Election[]>(initialElections);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isAgreedIntent, setIsAgreedIntent] = useState(false);
   const [isAgreedCert, setIsAgreedCert] = useState(false);
   const [selectedElection, setSelectedElection] = useState<Election | null>(null);
-  const [registeredElectionIds, setRegisteredElectionIds] = useState<string[]>([]);
+  const [registeredElectionIds, setRegisteredElectionIds] = useState<string[]>(initialRegisteredIds);
   const [error, setError] = useState<string | null>(null);
 
   const fetchElections = async () => {
@@ -70,8 +77,10 @@ export default function CandidateRegistrationView({ initialEmployee, userImageUr
   };
 
   useEffect(() => {
-    fetchElections();
-  }, []);
+    if (initialElections.length === 0) {
+      fetchElections();
+    }
+  }, [initialElections]);
 
   const handleRegister = async () => {
     if (!employee || !selectedElection) return;
