@@ -45,12 +45,37 @@ export default async function AdminElectionsPage() {
     imageUrl: user.imageUrl,
   };
 
+  // ดึงข้อมูลการเลือกตั้งทั้งหมดที่ฝั่ง Server
+  const elections = await prisma.elections.findMany({
+    orderBy: {
+      created_at: "desc",
+    },
+    include: {
+      _count: {
+        select: {
+          candidates: true,
+          votes: true,
+        },
+      },
+    },
+  });
+
+  // แปลง Date เป็น ISO String เพื่อส่งให้ Client Component
+  const serializedElections = elections.map(election => ({
+    ...election,
+    reg_start_date: election.reg_start_date?.toISOString(),
+    reg_end_date: election.reg_end_date?.toISOString(),
+    start_date: election.start_date.toISOString(),
+    end_date: election.end_date.toISOString(),
+    created_at: election.created_at?.toISOString(),
+  }));
+
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <Header user={sanitizedUser} />
         <div className="mt-10">
-          <ElectionManagementView />
+          <ElectionManagementView initialElections={serializedElections as any} />
         </div>
       </div>
     </div>

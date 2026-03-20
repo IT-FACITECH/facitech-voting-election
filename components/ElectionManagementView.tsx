@@ -48,8 +48,12 @@ const initialForm = {
   is_active: true,
 };
 
-export default function ElectionManagementView() {
-  const [elections, setElections] = useState<Election[]>([]);
+interface ElectionManagementProps {
+  initialElections?: Election[];
+}
+
+export default function ElectionManagementView({ initialElections = [] }: ElectionManagementProps) {
+  const [elections, setElections] = useState<Election[]>(initialElections);
   const [formData, setFormData] = useState(initialForm);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,9 +68,13 @@ export default function ElectionManagementView() {
     }
   };
 
+  // ไม่จำเป็นต้องใช้ useEffect ในการดึงข้อมูลครั้งแรกแล้ว เพราะข้อมูลถูกส่งผ่าน props มาแล้ว
+  // แต่สามารถเก็บไว้ได้หากต้องการให้ข้อมูลอัปเดตแบบเรียลไทม์มากขึ้นเมื่อ Component mount
   useEffect(() => {
-    fetchElections();
-  }, []);
+    if (initialElections.length === 0) {
+      fetchElections();
+    }
+  }, [initialElections]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
