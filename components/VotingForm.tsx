@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { castVote } from "@/app/actions/vote";
@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, Vote, Loader2 } from "lucide-react";
-
 import Swal from "sweetalert2";
 
 const votingSchema = z.object({
@@ -35,6 +34,88 @@ interface VotingFormProps {
   electionId: string;
   candidates: Candidate[];
 }
+
+// แยก CandidateCard ออกมาและใช้ memo เพื่อป้องกันการ re-render ของการ์ดใบอื่นที่ไม่เกี่ยวข้อง
+const CandidateCard = memo(({ 
+  candidate, 
+  isSelected, 
+  isDisabled, 
+  onToggle 
+}: { 
+  candidate: Candidate; 
+  isSelected: boolean; 
+  isDisabled: boolean; 
+  onToggle: (id: string) => void;
+}) => {
+  return (
+    <div
+      onClick={() => !isDisabled && onToggle(candidate.id)}
+      className={cn(
+        "cursor-pointer group relative flex flex-col items-center p-6 md:p-10 rounded-[2.5rem] border-2 transition-all duration-500",
+        isSelected
+          ? "bg-indigo-600/20 border-indigo-500 shadow-[0_0_60px_rgba(75,57,239,0.3)] scale-[1.02]"
+          : "bg-zinc-950/40 border-white/5 hover:border-white/10 hover:bg-zinc-900/40",
+        !isSelected && isDisabled && "opacity-20 grayscale cursor-not-allowed scale-[0.98]",
+      )}
+    >
+      <div className="relative w-24 h-24 md:w-36 md:h-36 mb-6 md:mb-10">
+        <div
+          className={cn(
+            "absolute -inset-6 rounded-full blur-3xl transition-opacity duration-700",
+            isSelected ? "bg-indigo-500/40 opacity-100" : "bg-white/5 opacity-0 group-hover:opacity-100",
+          )}
+        />
+
+        {candidate.image_url ? (
+          <div className="relative w-full h-full rounded-full p-1 bg-gradient-to-br from-white/20 to-transparent shadow-2xl">
+            <Image
+              src={candidate.image_url}
+              alt={candidate.name}
+              fill
+              priority={candidate.number <= 6} // ให้โหลดรูปภาพแรกๆ ทันที
+              className="rounded-full object-cover relative z-10 grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-5xl font-black text-zinc-700 shadow-inner relative z-10 border-4 border-white/5">
+            {candidate.number}
+          </div>
+        )}
+
+        {isSelected && (
+          <div className="absolute -top-1 -right-1 bg-white rounded-full p-2 shadow-2xl border-4 border-indigo-500 z-20 animate-in zoom-in spin-in-90 duration-500">
+            <Check className="w-5 h-5 md:w-7 md:h-7 text-indigo-500 stroke-[4]" />
+          </div>
+        )}
+      </div>
+
+      <div className="text-center w-full space-y-5 relative z-10">
+        <Badge
+          variant={isSelected ? "default" : "secondary"}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg",
+            isSelected ? "bg-white text-indigo-600 hover:bg-white" : "bg-zinc-800 text-zinc-200 border-white/10",
+          )}
+        >
+          เบอร์ {candidate.number}
+        </Badge>
+
+        <div className="space-y-1">
+          <h3 className="font-black text-white text-base md:text-xl leading-tight tracking-tight group-hover:text-indigo-300 transition-colors truncate w-full">
+            {candidate.name}
+          </h3>
+          {candidate.site && (
+            <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest bg-white/10 py-1.5 px-3 rounded-lg inline-block border border-white/5">
+              {candidate.site}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+CandidateCard.displayName = "CandidateCard";
 
 export default function VotingForm({
   electionId,
@@ -85,12 +166,6 @@ export default function VotingForm({
       reverseButtons: true,
       background: "rgba(24, 24, 27, 0.95)",
       color: "#ffffff",
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `,
     });
 
     if (!result.isConfirmed) return;
@@ -129,7 +204,7 @@ export default function VotingForm({
       console.error("Error voting:", error);
       Swal.fire({
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถบันทึกคะแนนได้ กรุณาลองใหม่อีกครั้ง",
+        text: "ไม่สามารถบันทึกคะแนนได้ กรุณาลองใหม่อใหม่อีกครั้ง",
         icon: "error",
         confirmButtonColor: "#4B39EF",
         background: "rgba(24, 24, 27, 0.95)",
@@ -194,81 +269,15 @@ export default function VotingForm({
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-          {candidates.map((candidate) => {
-            const isSelected = selectedCandidates.includes(candidate.id);
-            return (
-              <div
-                key={candidate.id}
-                onClick={() => toggleCandidate(candidate.id)}
-                className={cn(
-                  "cursor-pointer group relative flex flex-col items-center p-6 md:p-10 rounded-[2.5rem] border-2 transition-all duration-500",
-                  isSelected
-                    ? "bg-indigo-600/20 border-indigo-500 shadow-[0_0_60px_rgba(75,57,239,0.3)] scale-[1.02]"
-                    : "bg-zinc-950/40 border-white/5 hover:border-white/10 hover:bg-zinc-900/40",
-                  !isSelected &&
-                    selectedCandidates.length >= 5 &&
-                    "opacity-20 grayscale cursor-not-allowed scale-[0.98]",
-                )}
-              >
-                <div className="relative w-24 h-24 md:w-36 md:h-36 mb-6 md:mb-10">
-                  <div
-                    className={cn(
-                      "absolute -inset-6 rounded-full blur-3xl transition-opacity duration-700",
-                      isSelected
-                        ? "bg-indigo-500/40 opacity-100"
-                        : "bg-white/5 opacity-0 group-hover:opacity-100",
-                    )}
-                  />
-
-                  {candidate.image_url ? (
-                    <div className="relative w-full h-full rounded-full p-1 bg-gradient-to-br from-white/20 to-transparent shadow-2xl">
-                      <Image
-                        src={candidate.image_url}
-                        alt={candidate.name}
-                        fill
-                        className="rounded-full object-cover relative z-10 grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-5xl font-black text-zinc-700 shadow-inner relative z-10 border-4 border-white/5">
-                      {candidate.number}
-                    </div>
-                  )}
-
-                  {isSelected && (
-                    <div className="absolute -top-1 -right-1 bg-white rounded-full p-2 shadow-2xl border-4 border-indigo-500 z-20 animate-in zoom-in spin-in-90 duration-500">
-                      <Check className="w-5 h-5 md:w-7 md:h-7 text-indigo-500 stroke-[4]" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-center w-full space-y-5 relative z-10">
-                  <Badge
-                    variant={isSelected ? "default" : "secondary"}
-                    className={cn(
-                      "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg",
-                      isSelected
-                        ? "bg-white text-indigo-600 hover:bg-white"
-                        : "bg-zinc-800 text-zinc-200 border-white/10",
-                    )}
-                  >
-                    เบอร์ {candidate.number}
-                  </Badge>
-
-                  <div className="space-y-1">
-                    <h3 className="font-black text-white text-base md:text-xl leading-tight tracking-tight group-hover:text-indigo-300 transition-colors truncate w-full">
-                      {candidate.name}
-                    </h3>
-                    {candidate.site && (
-                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest bg-white/10 py-1.5 px-3 rounded-lg inline-block border border-white/5">
-                        {candidate.site}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {candidates.map((candidate) => (
+            <CandidateCard 
+              key={candidate.id}
+              candidate={candidate}
+              isSelected={selectedCandidates.includes(candidate.id)}
+              isDisabled={!selectedCandidates.includes(candidate.id) && selectedCandidates.length >= 5}
+              onToggle={toggleCandidate}
+            />
+          ))}
         </div>
       </div>
 

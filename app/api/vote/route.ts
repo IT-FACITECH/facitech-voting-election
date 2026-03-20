@@ -44,21 +44,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create the votes for all 5 candidates
-    await prisma.$transaction(
-      candidateIds.map((candidateId: string) => 
-        prisma.votes.create({
-          data: {
-            election_id: electionId,
-            candidate_id: candidateId,
-            voter_id: userId,
-            first_name: firstName,
-            last_name: lastName,
-            employee_id: dbUser.employee_id,
-          },
-        })
-      )
-    );
+    // Create the votes for all 5 candidates in a single batch
+    await prisma.votes.createMany({
+      data: candidateIds.map((candidateId: string) => ({
+        election_id: electionId,
+        candidate_id: candidateId,
+        voter_id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        employee_id: dbUser.employee_id,
+      })),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

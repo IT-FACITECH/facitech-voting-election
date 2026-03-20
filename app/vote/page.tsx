@@ -24,6 +24,33 @@ export default async function VotePage() {
     where: { emp_id: dbUser.employee_id },
   });
 
+  const now = new Date();
+  
+  // Find current active election
+  const election = await prisma.elections.findFirst({
+    where: {
+      is_active: true,
+      start_date: { lte: now },
+      end_date: { gte: now },
+    },
+    include: {
+      candidates: {
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+
+  let hasVoted = false;
+  if (election) {
+    const existingVote = await prisma.votes.findFirst({
+      where: {
+        election_id: election.id,
+        voter_id: userId,
+      },
+    });
+    hasVoted = !!existingVote;
+  }
+
   const sanitizedUser = {
     firstName: user.firstName,
     username: user.username,
@@ -32,5 +59,12 @@ export default async function VotePage() {
     imageUrl: user.imageUrl,
   };
 
-  return <VoteView user={sanitizedUser} userId={userId} />;
+  return (
+    <VoteView 
+      user={sanitizedUser} 
+      userId={userId} 
+      election={election as any} 
+      hasVoted={hasVoted} 
+    />
+  );
 }

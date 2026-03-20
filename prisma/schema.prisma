@@ -60,6 +60,8 @@ model votes {
   users        users?      @relation(fields: [voter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([election_id, voter_id, candidate_id], map: "unique_vote_per_user_per_candidate")
+  @@index([election_id, voter_id])
+  @@index([candidate_id])
 }
 
 model employees {
